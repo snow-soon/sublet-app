@@ -8,9 +8,11 @@ export interface User {
   id: string;
   name: string;
   gender: Gender;
-  profileImageUrl: string | null;
+  imageUrls: string[];
   bio: string | null;
 }
+
+export type RoomType = 'Studio' | 'Private Room' | 'Shared Room' | '1BR' | '2BR';
 
 export interface Property {
   id: string;
@@ -25,6 +27,9 @@ export interface Property {
   preferredGender: PreferredGender;
   description: string;
   imageUrls: string[];
+  roomType: RoomType;
+  furnished: boolean;
+  rules: string[];
 }
 
 export interface SeekerProfile {
@@ -35,6 +40,8 @@ export interface SeekerProfile {
   desiredStartDate: string;
   desiredEndDate: string;
   preferredGender: PreferredGender;
+  aboutMe: string;
+  lifestyle: string[];
 }
 
 export interface SeekerCard {
@@ -60,7 +67,11 @@ export const MOCK_PROPERTIES: Property[] = [
     imageUrls: [
       'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80',
       'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80',
     ],
+    roomType: 'Studio',
+    furnished: true,
+    rules: ['No smoking', 'No pets', 'Quiet hours after 10pm'],
   },
   {
     id: 'p2',
@@ -77,7 +88,11 @@ export const MOCK_PROPERTIES: Property[] = [
     imageUrls: [
       'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&q=80',
       'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80',
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80',
     ],
+    roomType: '1BR',
+    furnished: true,
+    rules: ['No smoking', 'Small pets OK', 'Keep common areas clean'],
   },
   {
     id: 'p3',
@@ -95,6 +110,9 @@ export const MOCK_PROPERTIES: Property[] = [
       'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80',
       'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80',
     ],
+    roomType: 'Studio',
+    furnished: false,
+    rules: ['No smoking', 'No parties', 'Lease transfer required'],
   },
   {
     id: 'p4',
@@ -111,7 +129,11 @@ export const MOCK_PROPERTIES: Property[] = [
     imageUrls: [
       'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80',
       'https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80',
+      'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=800&q=80',
     ],
+    roomType: 'Private Room',
+    furnished: true,
+    rules: ['No smoking', 'No overnight guests without notice', 'Shared kitchen cleanup'],
   },
   {
     id: 'p5',
@@ -129,6 +151,9 @@ export const MOCK_PROPERTIES: Property[] = [
       'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=800&q=80',
       'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
     ],
+    roomType: 'Shared Room',
+    furnished: false,
+    rules: ['No smoking', 'No pets', 'Shared bathroom schedule'],
   },
 ];
 
@@ -140,7 +165,11 @@ export const MOCK_SEEKER_CARDS: SeekerCard[] = [
       id: 'u1',
       name: 'Emma Johnson',
       gender: 'Female',
-      profileImageUrl: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&q=80',
+      imageUrls: [
+        'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&q=80',
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&q=80',
+        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&q=80',
+      ],
       bio: 'CS Junior @ UW-Madison · Coffee addict ☕ · Looking for summer sublet',
     },
     profile: {
@@ -151,6 +180,8 @@ export const MOCK_SEEKER_CARDS: SeekerCard[] = [
       desiredStartDate: '2025-05-15',
       desiredEndDate: '2025-08-15',
       preferredGender: 'Female',
+      aboutMe: 'I love coding and coffee. Looking for a clean, quiet place near campus for my summer internship.',
+      lifestyle: ['Non-smoker', 'Early riser', 'Clean & organized', 'Quiet lifestyle'],
     },
   },
   {
@@ -158,7 +189,10 @@ export const MOCK_SEEKER_CARDS: SeekerCard[] = [
       id: 'u2',
       name: 'Liam Park',
       gender: 'Male',
-      profileImageUrl: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=600&q=80',
+      imageUrls: [
+        'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=600&q=80',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80',
+      ],
       bio: 'Finance Senior · Internship @ American Family · Clean & quiet roommate',
     },
     profile: {
@@ -169,6 +203,8 @@ export const MOCK_SEEKER_CARDS: SeekerCard[] = [
       desiredStartDate: '2025-06-01',
       desiredEndDate: '2025-08-31',
       preferredGender: 'Any',
+      aboutMe: 'Finance senior with a summer internship lined up. Looking for a furnished place close to downtown.',
+      lifestyle: ['Non-smoker', 'Gym-goer', 'Social but respectful', 'Clean'],
     },
   },
   {
@@ -176,7 +212,11 @@ export const MOCK_SEEKER_CARDS: SeekerCard[] = [
       id: 'u3',
       name: 'Sofia Martinez',
       gender: 'Female',
-      profileImageUrl: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=600&q=80',
+      imageUrls: [
+        'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=600&q=80',
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&q=80',
+        'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&q=80',
+      ],
       bio: 'Grad student (Econ) · Loves yoga & farmers markets · Flexible on dates',
     },
     profile: {
@@ -187,6 +227,8 @@ export const MOCK_SEEKER_CARDS: SeekerCard[] = [
       desiredStartDate: '2025-05-01',
       desiredEndDate: '2025-07-31',
       preferredGender: 'Female',
+      aboutMe: 'Econ grad student who loves yoga, cooking, and visiting the farmers market on Saturdays.',
+      lifestyle: ['Non-smoker', 'Vegetarian', 'Yoga practitioner', 'Quiet evenings'],
     },
   },
   {
@@ -194,7 +236,10 @@ export const MOCK_SEEKER_CARDS: SeekerCard[] = [
       id: 'u4',
       name: 'Marcus Chen',
       gender: 'Male',
-      profileImageUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&q=80',
+      imageUrls: [
+        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&q=80',
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80',
+      ],
       bio: 'Biomedical Engineering · Research at WARF · Early bird 🐦',
     },
     profile: {
@@ -205,6 +250,8 @@ export const MOCK_SEEKER_CARDS: SeekerCard[] = [
       desiredStartDate: '2025-06-15',
       desiredEndDate: '2025-09-15',
       preferredGender: 'Male',
+      aboutMe: 'BME researcher spending summer at WARF. Need a quiet place to focus on my thesis.',
+      lifestyle: ['Early bird', 'Non-smoker', 'Studious', 'Neat and tidy'],
     },
   },
   {
@@ -212,7 +259,11 @@ export const MOCK_SEEKER_CARDS: SeekerCard[] = [
       id: 'u5',
       name: 'Aisha Williams',
       gender: 'Female',
-      profileImageUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=80',
+      imageUrls: [
+        'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=80',
+        'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=600&q=80',
+        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&q=80',
+      ],
       bio: 'Law School 1L · Night owl 🌙 · Looking for quiet solo place',
     },
     profile: {
@@ -223,6 +274,8 @@ export const MOCK_SEEKER_CARDS: SeekerCard[] = [
       desiredStartDate: '2025-05-20',
       desiredEndDate: '2025-08-20',
       preferredGender: 'Any',
+      aboutMe: 'Law student who studies late into the night. Looking for my own space where I can focus.',
+      lifestyle: ['Night owl', 'Non-smoker', 'Independent', 'Quiet'],
     },
   },
 ];
