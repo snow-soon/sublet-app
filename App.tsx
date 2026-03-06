@@ -36,6 +36,7 @@ const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
 // ─── Auth types ──────────────────────────────────────────────────────────────
 type UserRole = 'seeker' | 'owner';
 type AuthScreen = 'role-select' | 'seeker-auth' | 'owner-auth' | 'dashboard';
+type DashboardTab = 'explore' | 'likes' | 'chat' | 'profile';
 
 interface AuthUser {
   name: string;
@@ -681,6 +682,18 @@ function ActionButtons({ onNope, onLike }: { onNope: () => void; onLike: () => v
   );
 }
 
+function TabPlaceholder({ title, subtitle, icon }: { title: string; subtitle: string; icon: keyof typeof Ionicons.glyphMap }) {
+  return (
+    <View style={styles.tabPlaceholder}>
+      <View style={styles.tabPlaceholderIconWrap}>
+        <Ionicons name={icon} size={42} color="#B2B2B2" />
+      </View>
+      <Text style={styles.tabPlaceholderTitle}>{title}</Text>
+      <Text style={styles.tabPlaceholderSubtitle}>{subtitle}</Text>
+    </View>
+  );
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
   // Auth state
@@ -690,6 +703,7 @@ export default function App() {
   // Dashboard state
   const [properties, setProperties] = useState<Property[]>([...MOCK_PROPERTIES]);
   const [seekers, setSeekers] = useState<SeekerCard[]>([...MOCK_SEEKER_CARDS]);
+  const [activeTab, setActiveTab] = useState<DashboardTab>('explore');
 
   // Detail modal state
   const [detailProperty, setDetailProperty] = useState<Property | null>(null);
@@ -726,6 +740,7 @@ export default function App() {
   const handleLogin = (role: UserRole) => (name: string, email: string) => {
     setCurrentUser({ name, email, role });
     setAuthScreen('dashboard');
+    setActiveTab('explore');
     // Reset decks
     setProperties([...MOCK_PROPERTIES]);
     setSeekers([...MOCK_SEEKER_CARDS]);
@@ -738,6 +753,7 @@ export default function App() {
   const handleLogout = () => {
     setCurrentUser(null);
     setAuthScreen('role-select');
+    setActiveTab('explore');
   };
 
   // ─── Auth screens ────────────────────────────────────────────────────────
@@ -784,12 +800,39 @@ export default function App() {
 
   const visibleCards = currentDeck.slice(0, 4);
 
-  return (
-    <View style={{ flex: 1 }}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.bg} />
-      <View style={styles.container}>
-        <DashboardHeader user={currentUser} onLogout={handleLogout} />
+  const renderTabContent = () => {
+    if (activeTab === 'likes') {
+      return (
+        <TabPlaceholder
+          title="Likes"
+          subtitle="Who liked you and who you liked will appear here."
+          icon="heart-outline"
+        />
+      );
+    }
 
+    if (activeTab === 'chat') {
+      return (
+        <TabPlaceholder
+          title="Chat"
+          subtitle="Conversations with matched users will appear here."
+          icon="chatbubble-ellipses-outline"
+        />
+      );
+    }
+
+    if (activeTab === 'profile') {
+      return (
+        <TabPlaceholder
+          title="Profile"
+          subtitle="Manage your account and preferences."
+          icon="person-circle-outline"
+        />
+      );
+    }
+
+    return (
+      <>
         <View style={styles.deckContainer}>
           {currentDeck.length === 0 ? (
             <EmptyState mode={mode} />
@@ -816,14 +859,51 @@ export default function App() {
           )}
         </View>
 
-        {currentDeck.length > 0 && (
-          <ActionButtons onNope={() => handleButtonSwipe('left')} onLike={() => handleButtonSwipe('right')} />
-        )}
-
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             {currentDeck.length} {mode === 'seeker' ? 'listings' : 'seekers'} left
           </Text>
+        </View>
+      </>
+    );
+  };
+
+  const tabs: Array<{ key: DashboardTab; label: string; icon: keyof typeof Ionicons.glyphMap; activeIcon: keyof typeof Ionicons.glyphMap }> = [
+    { key: 'explore', label: 'Explore', icon: 'compass-outline', activeIcon: 'compass' },
+    { key: 'likes', label: 'Likes', icon: 'heart-outline', activeIcon: 'heart' },
+    { key: 'chat', label: 'Chat', icon: 'chatbubbles-outline', activeIcon: 'chatbubbles' },
+    { key: 'profile', label: 'Profile', icon: 'person-outline', activeIcon: 'person' },
+  ];
+
+  return (
+    <View style={{ flex: 1 }}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.bg} />
+      <View style={styles.container}>
+        <DashboardHeader user={currentUser} onLogout={handleLogout} />
+
+        {renderTabContent()}
+
+        <View style={styles.tabBar}>
+          {tabs.map(tab => {
+            const isActive = activeTab === tab.key;
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                style={styles.tabBarItem}
+                activeOpacity={0.8}
+                onPress={() => setActiveTab(tab.key)}
+              >
+                <Ionicons
+                  name={isActive ? tab.activeIcon : tab.icon}
+                  size={22}
+                  color={isActive ? COLORS.primary : '#A0A0A0'}
+                />
+                <Text style={[styles.tabBarLabel, isActive && styles.tabBarLabelActive]}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
@@ -903,6 +983,7 @@ const styles = StyleSheet.create({
   // Card
   card: {
     position: 'absolute',
+    top: 0,
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
     borderRadius: 20,
@@ -1130,6 +1211,66 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.muted,
     fontWeight: '500',
+  },
+
+  // Bottom tab bar
+  tabBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 30,
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: '#ECECEC',
+    backgroundColor: '#FFF',
+    paddingTop: 8,
+    paddingBottom: Platform.OS === 'ios' ? 22 : 14,
+    paddingHorizontal: 6,
+  },
+  tabBarItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    minHeight: 48,
+  },
+  tabBarLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#A0A0A0',
+    letterSpacing: -0.1,
+  },
+  tabBarLabelActive: {
+    color: COLORS.primary,
+  },
+
+  tabPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+    gap: 10,
+  },
+  tabPlaceholderIconWrap: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#F2F2F2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabPlaceholderTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#303030',
+    letterSpacing: -0.3,
+  },
+  tabPlaceholderSubtitle: {
+    fontSize: 14,
+    color: '#8A8A8A',
+    textAlign: 'center',
+    lineHeight: 21,
   },
 
   // Empty state
