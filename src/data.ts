@@ -27,6 +27,10 @@ export interface Property {
   preferredGender: PreferredGender;
   description: string;
   imageUrls: string[];
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
   roomType: RoomType;
   furnished: boolean;
   rules: string[];
@@ -69,6 +73,7 @@ export const MOCK_PROPERTIES: Property[] = [
       'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80',
       'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80',
     ],
+    coordinates: { latitude: 43.0734, longitude: -89.3965 },
     roomType: 'Studio',
     furnished: true,
     rules: ['No smoking', 'No pets', 'Quiet hours after 10pm'],
@@ -90,6 +95,7 @@ export const MOCK_PROPERTIES: Property[] = [
       'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80',
       'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80',
     ],
+    coordinates: { latitude: 43.0748, longitude: -89.3905 },
     roomType: '1BR',
     furnished: true,
     rules: ['No smoking', 'Small pets OK', 'Keep common areas clean'],
@@ -110,6 +116,7 @@ export const MOCK_PROPERTIES: Property[] = [
       'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80',
       'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80',
     ],
+    coordinates: { latitude: 43.0747, longitude: -89.3942 },
     roomType: 'Studio',
     furnished: false,
     rules: ['No smoking', 'No parties', 'Lease transfer required'],
@@ -131,6 +138,7 @@ export const MOCK_PROPERTIES: Property[] = [
       'https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80',
       'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=800&q=80',
     ],
+    coordinates: { latitude: 43.0766, longitude: -89.3934 },
     roomType: 'Private Room',
     furnished: true,
     rules: ['No smoking', 'No overnight guests without notice', 'Shared kitchen cleanup'],
@@ -151,6 +159,7 @@ export const MOCK_PROPERTIES: Property[] = [
       'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=800&q=80',
       'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
     ],
+    coordinates: { latitude: 43.0708, longitude: -89.4121 },
     roomType: 'Shared Room',
     furnished: false,
     rules: ['No smoking', 'No pets', 'Shared bathroom schedule'],

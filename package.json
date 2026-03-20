@@ -7,7 +7,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "expo export --platform web"
+    "build": "expo export --platform web",
+    "erd:render": "mmdc -i docs/database/ERD.mmd -o docs/database/ERD.svg"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
@@ -20,6 +21,7 @@
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
     "react-native-gesture-handler": "~2.28.0",
+    "react-native-maps": "1.20.1",
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
@@ -28,6 +30,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
+    "@mermaid-js/mermaid-cli": "^11.12.0",
     "@types/react": "~19.1.10",
     "typescript": "^5.3.3"
   },
