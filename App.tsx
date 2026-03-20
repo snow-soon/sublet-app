@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import MapView, { Marker } from 'react-native-maps';
 
 import {
   AppMode,
@@ -29,8 +30,9 @@ import SeekerAuthScreen from './src/screens/SeekerAuthScreen';
 import OwnerAuthScreen from './src/screens/OwnerAuthScreen';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH - 24;
-const CARD_HEIGHT = SCREEN_HEIGHT * 0.75;
+const CARD_WIDTH = SCREEN_WIDTH;
+const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 80 : 70;
+const CARD_HEIGHT = SCREEN_HEIGHT - TAB_BAR_HEIGHT - 12;
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
 
 // ─── Auth types ──────────────────────────────────────────────────────────────
@@ -124,32 +126,18 @@ function GenderTag({ gender }: { gender: string }) {
 }
 
 // ─── Property Card Content ────────────────────────────────────────────────────
-function PropertyCardContent({ property, onShowDetail }: { property: Property; onShowDetail?: () => void }) {
+function PropertyCardContent({ property, onShowDetail, onNope, onLike }: { property: Property; onShowDetail?: () => void; onNope?: () => void; onLike?: () => void }) {
   return (
     <View style={styles.cardInner}>
       <ImageCarousel imageUrls={property.imageUrls} />
-      <LinearGradient colors={['transparent', 'rgba(0,0,0,0.85)']} style={styles.gradient} />
+      <LinearGradient colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0)']} style={styles.topGradient} />
+      <LinearGradient colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)', '#000']} style={styles.gradient} />
       <View style={styles.cardInfo}>
-        <View style={styles.cardInfoRow}>
-          <Text style={styles.apartmentName} numberOfLines={1}>{property.apartmentName}</Text>
-          <GenderTag gender={property.preferredGender} />
-        </View>
+        <Text style={styles.apartmentName} numberOfLines={1}>{property.apartmentName}</Text>
         <Text style={styles.address} numberOfLines={1}>
           📍 {property.address}
         </Text>
-        <View style={styles.priceRow}>
-          <Text style={styles.originalPrice}>${property.originalRentPrice}/mo</Text>
-          <Text style={styles.subletPrice}>${property.subletPrice}/mo</Text>
-          <View style={styles.saveBadge}>
-            <Text style={styles.saveBadgeText}>SAVE ${property.originalRentPrice - property.subletPrice}</Text>
-          </View>
-        </View>
-        <Text style={styles.utilityText}>+${property.avgUtilityFee} avg utilities</Text>
-        <View style={styles.dateRow}>
-          <Text style={styles.dateText}>
-            📅 {formatDate(property.availableStartDate)} – {formatDate(property.availableEndDate)}
-          </Text>
-        </View>
+        <Text style={styles.subletPrice}>${property.subletPrice}/mo</Text>
       </View>
       {/* Detail expand button */}
       {onShowDetail && (
@@ -157,38 +145,50 @@ function PropertyCardContent({ property, onShowDetail }: { property: Property; o
           <Ionicons name="chevron-up" size={18} color="#FFF" />
         </TouchableOpacity>
       )}
+      {/* Action buttons inside card */}
+      {onNope && onLike && (
+        <View style={styles.actions} pointerEvents="box-none">
+          <TouchableOpacity style={[styles.actionBtn, styles.actionNope]} onPress={onNope} activeOpacity={0.85}>
+            <Ionicons name="close" size={38} color={COLORS.danger} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionBtn, styles.actionLike]} onPress={onLike} activeOpacity={0.85}>
+            <Ionicons name="heart" size={34} color={COLORS.success} />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
 
 // ─── Seeker Card Content ──────────────────────────────────────────────────────
-function SeekerCardContent({ card, onShowDetail }: { card: SeekerCard; onShowDetail?: () => void }) {
+function SeekerCardContent({ card, onShowDetail, onNope, onLike }: { card: SeekerCard; onShowDetail?: () => void; onNope?: () => void; onLike?: () => void }) {
   const { user, profile } = card;
   return (
     <View style={styles.cardInner}>
       <ImageCarousel imageUrls={user.imageUrls} />
-      <LinearGradient colors={['transparent', 'rgba(0,0,0,0.88)']} style={styles.gradient} />
+      <LinearGradient colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0)']} style={styles.topGradient} />
+      <LinearGradient colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)', '#000']} style={styles.gradient} />
       <View style={styles.cardInfo}>
-        <View style={styles.cardInfoRow}>
-          <Text style={styles.apartmentName} numberOfLines={1}>{user.name}</Text>
-          <GenderTag gender={profile.preferredGender} />
-        </View>
-        {user.bio ? <Text style={styles.address} numberOfLines={2}>{user.bio}</Text> : null}
-        <View style={styles.priceRow}>
-          <Text style={styles.subletPrice}> ${profile.targetPriceMin} – ${profile.targetPriceMax}</Text>
-          <Text style={styles.utilityText}> /mo</Text>
-        </View>
-        <View style={styles.dateRow}>
-          <Text style={styles.dateText}>
-            📅 {formatDate(profile.desiredStartDate)} – {formatDate(profile.desiredEndDate)}
-          </Text>
-        </View>
+        <Text style={styles.apartmentName} numberOfLines={1}>{user.name}</Text>
+        {user.bio ? <Text style={styles.address} numberOfLines={1}>{user.bio}</Text> : null}
+        <Text style={styles.subletPrice}>${profile.targetPriceMin} – ${profile.targetPriceMax}/mo</Text>
       </View>
       {/* Detail expand button */}
       {onShowDetail && (
         <TouchableOpacity style={styles.detailBtn} onPress={onShowDetail} activeOpacity={0.8}>
           <Ionicons name="chevron-up" size={18} color="#FFF" />
         </TouchableOpacity>
+      )}
+      {/* Action buttons inside card */}
+      {onNope && onLike && (
+        <View style={styles.actions} pointerEvents="box-none">
+          <TouchableOpacity style={[styles.actionBtn, styles.actionNope]} onPress={onNope} activeOpacity={0.85}>
+            <Ionicons name="close" size={38} color={COLORS.danger} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionBtn, styles.actionLike]} onPress={onLike} activeOpacity={0.85}>
+            <Ionicons name="heart" size={34} color={COLORS.success} />
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
@@ -302,8 +302,22 @@ function PropertyDetailModal({ property, visible, onClose }: { property: Propert
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalContent}>
-            {/* Header image */}
-            <Image source={{ uri: property.imageUrls[0] }} style={styles.modalImage} resizeMode="cover" />
+            {/* Header Map */}
+            <View style={styles.modalMapContainer}>
+              <MapView
+                style={styles.modalMap}
+                initialRegion={{
+                  latitude: property.coordinates?.latitude || 43.0731,
+                  longitude: property.coordinates?.longitude || -89.4012,
+                  latitudeDelta: 0.015,
+                  longitudeDelta: 0.015,
+                }}
+              >
+                {property.coordinates && (
+                  <Marker coordinate={property.coordinates} />
+                )}
+              </MapView>
+            </View>
 
             {/* Title */}
             <Text style={styles.modalTitle}>{property.apartmentName}</Text>
@@ -323,8 +337,8 @@ function PropertyDetailModal({ property, visible, onClose }: { property: Propert
               <View style={styles.modalInfoItem}>
                 <Ionicons name="calendar-outline" size={20} color="#6C5CE7" />
                 <Text style={styles.modalInfoLabel}>Dates</Text>
-                <Text style={styles.modalInfoValue}>{formatDate(property.availableStartDate)}</Text>
-                <Text style={styles.modalInfoSub}>to {formatDate(property.availableEndDate)}</Text>
+                <Text style={styles.modalInfoValueHighlight}>{formatDate(property.availableStartDate)}</Text>
+                <Text style={styles.modalInfoSubHighlight}>to {formatDate(property.availableEndDate)}</Text>
               </View>
               <View style={styles.modalInfoItem}>
                 <Ionicons name="bed-outline" size={20} color="#FF5A5F" />
@@ -607,12 +621,10 @@ const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(({ index, onSwipedLef
     extrapolate: 'clamp',
   });
 
-  // Back cards: static scale + offset (no gesture)
+  // Back cards: same size, no gesture — ready to show instantly
   if (!isTop) {
-    const scale = Math.max(1 - index * 0.04, 0.88);
-    const offsetY = index * 8;
     return (
-      <View style={[styles.card, { transform: [{ translateY: offsetY }, { scale }] }]}>
+      <View style={styles.card}>
         {children}
       </View>
     );
@@ -638,18 +650,11 @@ const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(({ index, onSwipedLef
 
 // ─── Dashboard Header (with logout) ──────────────────────────────────────────
 function DashboardHeader({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
-  const isSeeker = user.role === 'seeker';
   return (
     <View style={styles.header}>
-      <View style={styles.headerLeft}>
-        <Text style={styles.logoText}>Roomie</Text>
-        <View style={[styles.roleBadge, { backgroundColor: isSeeker ? '#6C5CE7' : '#00B894' }]}>
-          <Ionicons name={isSeeker ? 'search' : 'home'} size={10} color="#FFF" />
-          <Text style={styles.roleBadgeText}>{isSeeker ? 'Seeker' : 'Owner'}</Text>
-        </View>
-      </View>
+      <View />
       <TouchableOpacity style={styles.logoutBtn} onPress={onLogout} activeOpacity={0.8}>
-        <Ionicons name="log-out-outline" size={20} color={COLORS.muted} />
+        <Ionicons name="log-out-outline" size={20} color="#FFF" />
       </TouchableOpacity>
     </View>
   );
@@ -671,12 +676,12 @@ function EmptyState({ mode }: { mode: AppMode }) {
 // ─── Action Buttons ───────────────────────────────────────────────────────────
 function ActionButtons({ onNope, onLike }: { onNope: () => void; onLike: () => void }) {
   return (
-    <View style={styles.actions}>
+    <View style={styles.actions} pointerEvents="box-none">
       <TouchableOpacity style={[styles.actionBtn, styles.actionNope]} onPress={onNope} activeOpacity={0.85}>
-        <Ionicons name="close" size={30} color={COLORS.danger} />
+        <Ionicons name="close" size={38} color={COLORS.danger} />
       </TouchableOpacity>
       <TouchableOpacity style={[styles.actionBtn, styles.actionLike]} onPress={onLike} activeOpacity={0.85}>
-        <Ionicons name="heart" size={28} color={COLORS.success} />
+        <Ionicons name="heart" size={34} color={COLORS.success} />
       </TouchableOpacity>
     </View>
   );
@@ -833,36 +838,41 @@ export default function App() {
 
     return (
       <>
-        <View style={styles.deckContainer}>
+        <View style={styles.deckContainer} pointerEvents="box-none">
           {currentDeck.length === 0 ? (
             <EmptyState mode={mode} />
           ) : (
             [...visibleCards].reverse().map((item, reversedIndex) => {
               const index = visibleCards.length - 1 - reversedIndex;
+              const isTopCard = index === 0;
               const key = mode === 'seeker'
                 ? (item as Property).id
                 : (item as SeekerCard).user.id;
               return (
                 <SwipeCard
                   key={key}
-                  ref={index === 0 ? topCardRef : undefined}
+                  ref={isTopCard ? topCardRef : undefined}
                   index={index}
                   onSwipedLeft={removeTop}
                   onSwipedRight={removeTop}
                 >
                   {mode === 'seeker'
-                    ? <PropertyCardContent property={item as Property} onShowDetail={() => showPropertyDetail(item as Property)} />
-                    : <SeekerCardContent card={item as SeekerCard} onShowDetail={() => showSeekerDetail(item as SeekerCard)} />}
+                    ? <PropertyCardContent
+                      property={item as Property}
+                      onShowDetail={() => showPropertyDetail(item as Property)}
+                      onNope={isTopCard ? () => handleButtonSwipe('left') : undefined}
+                      onLike={isTopCard ? () => handleButtonSwipe('right') : undefined}
+                    />
+                    : <SeekerCardContent
+                      card={item as SeekerCard}
+                      onShowDetail={() => showSeekerDetail(item as SeekerCard)}
+                      onNope={isTopCard ? () => handleButtonSwipe('left') : undefined}
+                      onLike={isTopCard ? () => handleButtonSwipe('right') : undefined}
+                    />}
                 </SwipeCard>
               );
             })
           )}
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            {currentDeck.length} {mode === 'seeker' ? 'listings' : 'seekers'} left
-          </Text>
         </View>
       </>
     );
@@ -876,8 +886,8 @@ export default function App() {
   ];
 
   return (
-    <View style={{ flex: 1 }}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.bg} />
+    <View style={{ flex: 1, backgroundColor: '#000' }}>
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
       <View style={styles.container}>
         <DashboardHeader user={currentUser} onLogout={handleLogout} />
 
@@ -928,47 +938,28 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bg,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 32 : 52,
+    backgroundColor: '#000',
   },
 
-  // Header
+  // Header (just logout button, overlaid on the card)
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 50,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  logoText: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: -0.5,
-  },
-  roleBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  roleBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#FFF',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 32) + 8 : 54,
+    paddingBottom: 10,
   },
   logoutBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#EBEBEB',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(0,0,0,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -980,20 +971,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Card
+  // Card — full width, starts from top, rounded only at bottom
   card: {
     position: 'absolute',
     top: 0,
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
-    borderRadius: 20,
+    left: 0,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
     overflow: 'hidden',
-    backgroundColor: COLORS.card,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 10,
+    backgroundColor: '#000',
   },
   cardInner: { flex: 1 },
   cardImage: {
@@ -1005,11 +995,11 @@ const styles = StyleSheet.create({
   // Progress bars (Tinder-style)
   progressBarContainer: {
     position: 'absolute',
-    top: 8,
-    left: 8,
-    right: 8,
+    top: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 32) + 16 : 66,
+    alignSelf: 'center',
+    width: '35%',
     flexDirection: 'row',
-    gap: 4,
+    gap: 2,
     zIndex: 20,
   },
   // Tap zones for image navigation (full height)
@@ -1031,23 +1021,31 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 3,
-    borderRadius: 1.5,
+    borderRadius: 2,
   },
 
+  topGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 120,
+    zIndex: 10,
+  },
   gradient: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    height: CARD_HEIGHT * 0.55,
+    height: CARD_HEIGHT * 0.35,
   },
   cardInfo: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 110,
     left: 0,
     right: 0,
-    padding: 20,
-    gap: 5,
+    paddingHorizontal: 20,
+    gap: 4,
   },
   cardInfoRow: {
     flexDirection: 'row',
@@ -1056,16 +1054,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   apartmentName: {
-    flex: 1,
-    fontSize: 27,
+    fontSize: 24,
     fontWeight: '800',
     color: COLORS.white,
     letterSpacing: -0.3,
   },
   address: {
-    fontSize: 15,
+    fontSize: 14,
     color: 'rgba(255,255,255,0.85)',
-    marginTop: 2,
     fontWeight: '500',
   },
   priceRow: {
@@ -1081,9 +1077,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   subletPrice: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: '800',
     color: '#4ADE80',
+    marginTop: 4,
   },
   saveBadge: {
     backgroundColor: 'rgba(74,222,128,0.25)',
@@ -1133,11 +1130,11 @@ const styles = StyleSheet.create({
   // Detail expand button
   detailBtn: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 115,
     right: 20,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.4)',
@@ -1149,11 +1146,11 @@ const styles = StyleSheet.create({
   // Stamps
   stamp: {
     position: 'absolute',
-    top: 40,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 3,
+    top: '25%',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 4,
   },
   stampLike: {
     left: 24,
@@ -1168,38 +1165,37 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '20deg' }],
   },
   stampText: {
-    fontSize: 28,
+    fontSize: 42,
     fontWeight: '900',
-    letterSpacing: 2,
+    letterSpacing: 3,
   },
 
-  // Action buttons
+  // Action buttons — inside the card, at the bottom
   actions: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    zIndex: 40,
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 40,
-    paddingVertical: 12,
-  },
-  actionBtn: {
-    width: 66,
-    height: 66,
-    borderRadius: 33,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.white,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 5,
+    gap: 50,
+  },
+  actionBtn: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1A1A1A',
+    borderWidth: 2,
   },
   actionNope: {
-    borderWidth: 2,
-    borderColor: 'rgba(255,23,68,0.3)',
+    borderColor: 'rgba(255,23,68,0.5)',
   },
   actionLike: {
-    borderWidth: 2,
-    borderColor: 'rgba(0,200,83,0.3)',
+    borderColor: 'rgba(0,200,83,0.5)',
   },
 
   // Footer
@@ -1213,20 +1209,24 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Bottom tab bar
+  // Bottom tab bar (floating island)
   tabBar: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    left: 12,
+    right: 12,
+    bottom: Platform.OS === 'ios' ? 20 : 10,
     zIndex: 30,
     flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: '#ECECEC',
-    backgroundColor: '#FFF',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 28,
     paddingTop: 8,
-    paddingBottom: Platform.OS === 'ios' ? 22 : 14,
+    paddingBottom: Platform.OS === 'ios' ? 12 : 10,
     paddingHorizontal: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   tabBarItem: {
     flex: 1,
@@ -1238,7 +1238,7 @@ const styles = StyleSheet.create({
   tabBarLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#A0A0A0',
+    color: '#666',
     letterSpacing: -0.1,
   },
   tabBarLabelActive: {
@@ -1332,6 +1332,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
+  modalMapContainer: {
+    width: '100%',
+    height: 250,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  modalMap: {
+    width: '100%',
+    height: '100%',
+  },
   modalImage: {
     width: '100%',
     height: 180,
@@ -1385,9 +1397,22 @@ const styles = StyleSheet.create({
     color: '#1A1A2E',
     textAlign: 'center',
   },
+  modalInfoValueHighlight: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#6C5CE7',
+    textAlign: 'center',
+    marginTop: 2,
+  },
   modalInfoSub: {
     fontSize: 11,
     color: '#AAA',
+  },
+  modalInfoSubHighlight: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#8A7BEE',
+    marginTop: 1,
   },
   modalSectionTitle: {
     fontSize: 16,
